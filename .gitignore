@@ -1,0 +1,7 @@
+*.sln
+*.csproj
+*.cache
+*.config
+.vs
+Othello/Properties/
+Othello/obj/
