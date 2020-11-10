@@ -89,66 +89,91 @@ namespace Othello
             // list of size 2 int arrays containing indexes of positions to flip color for
             List<int[]> positionsToUpdate = new List<int[]>();
 
+            // list of directions to search in
+            List<int[]> directions = new List<int[]> { 
+                new int[] { 1, 0 },
+                new int[] { -1, 0 },
+                new int[] { 0, 1 },
+                new int[] { 0, -1},
+                new int[] { 1, 1 },
+                new int[] { 1, -1 },
+                new int[] { -1, 1},
+                new int[] { -1, -1 }
+            };
+
             // color of current turn
             char turnColor = IsBlacksTurn ? 'B' : 'W';
 
             // check each direction from move for a flank
             int[] flankingPiece;
-            if ((flankingPiece = CheckForFlank(move, new int[] { 1, 0 }, turnColor)) != null) // check down
+            directions.ForEach(direction =>
             {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 0)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+                // check direction, if flank found, then add pieces to flip to positionsToUpdate
+                if ((flankingPiece = CheckForFlank(move, direction, turnColor)) != null)
+                {
+                    int column = move[0], row = move[1];
+                    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += direction[0], row += direction[1])
+                        positionsToUpdate.Add(new int[] { column, row });
+                }
+            });
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { -1, 0 }, turnColor)) != null) // check up
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 0)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            #region Expanded If Chain
+            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, 0 }, turnColor)) != null) // check down
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 0)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { 0, 1 }, turnColor)) != null) // check right
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += 1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, 0 }, turnColor)) != null) // check up
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 0)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { 0, -1 }, turnColor)) != null) // check left
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += -1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            //if ((flankingPiece = CheckForFlank(move, new int[] { 0, 1 }, turnColor)) != null) // check right
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += 1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { 1, 1 }, turnColor)) != null) // check down-right
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            //if ((flankingPiece = CheckForFlank(move, new int[] { 0, -1 }, turnColor)) != null) // check left
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += -1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { 1, -1 }, turnColor)) != null) // check down-left
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += -1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }                                                           
-                                                                        
-            if ((flankingPiece = CheckForFlank(move, new int[] { -1, 1 }, turnColor)) != null) // check up-right
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, 1 }, turnColor)) != null) // check down-right
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
 
-            if ((flankingPiece = CheckForFlank(move, new int[] { -1, -1 }, turnColor)) != null) // check up-left
-            {
-                int column = move[0], row = move[1];
-                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += -1)
-                    positionsToUpdate.Add(new int[] { column, row });
-            }
+            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, -1 }, turnColor)) != null) // check down-left
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += -1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}                                                           
+
+            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, 1 }, turnColor)) != null) // check up-right
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
+
+            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, -1 }, turnColor)) != null) // check up-left
+            //{
+            //    int column = move[0], row = move[1];
+            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += -1)
+            //        positionsToUpdate.Add(new int[] { column, row });
+            //}
+            #endregion
 
             if (positionsToUpdate.Count != 0)
                 return positionsToUpdate;
