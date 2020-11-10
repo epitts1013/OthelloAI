@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,27 +42,35 @@ namespace Othello
             // convert move to character array for parsing
             char[] moveArray = move.ToCharArray();
 
+            // get integer representation of move
+            int column = char.ToUpper(moveArray[0]) - 65;
+            int row = moveArray[1] - 49;
+
             // checks for invalid move input
             if (moveArray.Length != 2 || !char.IsLetter(moveArray[0]) || !char.IsDigit(moveArray[1])) // invalid length or format
             {
                 Console.WriteLine("Format of supplied move was invalid. Move should be given as a character column followed by a numeric row, i.e. \"A1\", \"B4\", \"C6\".");
                 return false;
             }
-            else if (char.ToUpper(moveArray[0]) < 65 || char.ToUpper(moveArray[0]) > 72) // invalid column
+            else if (column < 1 || column > 8) // invalid column
             {
                 Console.WriteLine("Column of supplied move was out of range, valid columns are letters A-H.");
                 return false;
             }
-            else if (moveArray[1] < 49 || moveArray[1] > 56) // invalid row
+            else if (row < 1 || row > 8) // invalid row
             {
                 Console.WriteLine("Row of supplied move was out of range, valid rows are numbers 1-8");
                 return false;
             }
 
             List<int[]> positionsToUpdate;
-            if ((positionsToUpdate = CheckMove(moveArray)) != null)
+            if ((positionsToUpdate = CheckMove(new int[] { column, row })) != null)
             {
-                // TODO: Change board state based on move
+                // update board positions
+                positionsToUpdate.ForEach(position =>
+                {
+                    BoardState[position[0], position[1]] = IsBlacksTurn ? 'B' : 'W';
+                });
 
                 // toggle current player turn
                 IsBlacksTurn = !IsBlacksTurn;
@@ -74,69 +83,162 @@ namespace Othello
             }
         }
 
-        // returns a list positions to flip from a given move, or null if the move is invalid
-        public List<int[]> CheckMove(char[] move)
+        // returns a list positions to flip from a given move, or null if the move is illegal
+        private List<int[]> CheckMove(int[] move)
         {
             // list of size 2 int arrays containing indexes of positions to flip color for
             List<int[]> positionsToUpdate = new List<int[]>();
 
-            // get integer representation of move
-            int column = char.ToUpper(move[0]) - 65;
-            int row = move[1] - 49;
-
             // color of current turn
             char turnColor = IsBlacksTurn ? 'B' : 'W';
 
-            // counts how many tiles will be flipped
-            int count = 0;
-
-            // check upwards
-            for (int i = row; i >= 0; i--)
+            // check each direction from move for a flank
+            int[] flankingPiece;
+            if ((flankingPiece = CheckForFlank(move, new int[] { 1, 0 }, turnColor)) != null) // check down
             {
-                if (BoardState[column, i] == 'O') // if the search encounters a blank spot
-                    break;
-                else if (BoardState[column, i] != turnColor) // if the tile matches the opponent players tile color
-                    count++;
-                else if (BoardState[column, i] == turnColor) // if the tile matches the current players tile color
-                {
-                    // add positions if there are positions to add
-                    if (count != 0)
-                    {
-                        // go back and add positions between the two tiles
-                        for (int j = i + 1; j < row; j++)
-                            positionsToUpdate.Add(new int[] { column, j });
-                        break;
-                    }
-                    else break;
-                }
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 0)
+                    positionsToUpdate.Add(new int[] { column, row });
             }
-            count = 0;
 
-            // check downwards
-            for (int i = row; i < 8; i++)
+            if ((flankingPiece = CheckForFlank(move, new int[] { -1, 0 }, turnColor)) != null) // check up
             {
-                if (BoardState[column, i] == 'O') // if the search encounters a blank spot
-                    break;
-                else if (BoardState[column, i] != turnColor) // if the tile matches the opponent players tile color
-                    count++;
-                else if (BoardState[column, i] == turnColor) // if the tile matches the current players tile color
-                {
-                    // add positions if there are positions to add
-                    if (count != 0)
-                    {
-                        // go back and add positions between the two tiles
-                        for (int j = i - 1; j >= row; j--)
-                            positionsToUpdate.Add(new int[] { column, j });
-                        break;
-                    }
-                    else break;
-                }
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 0)
+                    positionsToUpdate.Add(new int[] { column, row });
             }
-            count = 0;
 
-            // if list of positions to update isn't empty, return it, otherwise return null
-            if (positionsToUpdate.Count > 0)
+            if ((flankingPiece = CheckForFlank(move, new int[] { 0, 1 }, turnColor)) != null) // check right
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += 1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }
+
+            if ((flankingPiece = CheckForFlank(move, new int[] { 0, -1 }, turnColor)) != null) // check left
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += -1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }
+
+            if ((flankingPiece = CheckForFlank(move, new int[] { 1, 1 }, turnColor)) != null) // check down-right
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }
+
+            if ((flankingPiece = CheckForFlank(move, new int[] { 1, -1 }, turnColor)) != null) // check down-left
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += -1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }                                                           
+                                                                        
+            if ((flankingPiece = CheckForFlank(move, new int[] { -1, 1 }, turnColor)) != null) // check up-right
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }
+
+            if ((flankingPiece = CheckForFlank(move, new int[] { -1, -1 }, turnColor)) != null) // check up-left
+            {
+                int column = move[0], row = move[1];
+                for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += -1)
+                    positionsToUpdate.Add(new int[] { column, row });
+            }
+
+            if (positionsToUpdate.Count != 0)
                 return positionsToUpdate;
+            else
+                return null;
+
+            #region More Old Code
+            //// list of size 2 int arrays containing indexes of positions to flip color for
+            //List<int[]> positionsToUpdate = new List<int[]>();
+
+            //// get integer representation of move
+            //int column = char.ToUpper(move[0]) - 65;
+            //int row = move[1] - 49;
+
+            //// if move is on already occupied space
+            //if (BoardState[column, row] != 'O')
+            //{
+            //    Console.WriteLine("Space is already occupied");
+            //    return null;
+            //}
+
+            //if (IsBlacksTurn)
+            //{
+            //    List<int[]> piecesToConsider = new List<int[]>();
+            //    blackPieces.ForEach(piece =>
+            //    {
+            //        // check if move is in column with another piece of the same color
+            //        if (piece[0] == column)
+            //        {
+            //            if (piece[0] > column)
+            //        }
+
+            //        // check if move is in row with another piece of the same color
+            //        if (piece[1] == row)
+            //        {
+
+            //        }
+
+            //        // check if move is on a diagonal from another piece of the same color
+            //        if (Math.Abs(column - piece[0]) == Math.Abs(row - piece[1]))
+            //        {
+
+            //        }
+            //    });
+            //}
+            //else
+            //{
+            //    List<int[]> piecesToConsider = new List<int[]>();
+            //    whitePieces.ForEach(piece =>
+            //    {
+            //        // if move is in line with another piece of the same color
+            //        if (piece[0] == column || piece[1] == row)
+            //        {
+
+            //        }
+
+            //        // check if move is on a diagonal from another piece of the same color
+            //        if (Math.Abs(column - piece[0]) == Math.Abs(row - piece[1]))
+            //        {
+
+            //        }
+            //    });
+            //}
+            #endregion
+
+
+        }
+
+        private int[] CheckForFlank(int[] move, int[] direction, char turnColor)
+        {
+            // get column and row from move
+            int column = move[0], row = move[1];
+
+            // get opponent color
+            char oppColor = turnColor == 'B' ? 'W' : 'B';
+
+            do
+            {
+                // increment row and column by search direction
+                column += direction[0];
+                row += direction[1];
+
+                // if we go out of array bounds, return null
+                if (column < 0 || column > 7 || row < 0 || row > 7)
+                    return null;
+
+            } while (BoardState[column, row] != oppColor); // if we stop seeing the opponents piece, check why
+
+            if (BoardState[column, row] == turnColor) // if space is the current turns color, return the piece position
+                return new int[] { column, row };
             else
                 return null;
         }
