@@ -36,6 +36,25 @@ namespace Othello
             BoardState[4, 5] = 'B';
         }
 
+        // resets board to starting state
+        public void ResetBoard()
+        {
+            IsBlacksTurn = true;
+
+            // initialize all places to 'O', representing no piece
+            for (int i = 0; i < 8; i++)
+                for (int j = 0; j < 8; j++)
+                    BoardState[i, j] = 'O';
+
+            // set white's starting pieces
+            BoardState[3, 3] = 'W';
+            BoardState[4, 4] = 'W';
+
+            // set black's starting pieces
+            BoardState[4, 3] = 'B';
+            BoardState[3, 4] = 'B';
+        }
+
         // returns true if valid move was played
         public bool PlayMove(string move)
         {
@@ -49,17 +68,26 @@ namespace Othello
             // checks for invalid move input
             if (moveArray.Length != 2 || !char.IsLetter(moveArray[0]) || !char.IsDigit(moveArray[1])) // invalid length or format
             {
-                Console.WriteLine("Format of supplied move was invalid. Move should be given as a character column followed by a numeric row, i.e. \"A1\", \"B4\", \"C6\".");
+                Console.WriteLine("Format of supplied move was invalid. Move should be given as a character column followed by a numeric row, i.e. \"A1\", \"B4\", \"C6\". Press Enter to continue...");
+                Console.ReadLine();
                 return false;
             }
-            else if (column < 1 || column > 8) // invalid column
+            else if (column < 1 || column > 7) // invalid column
             {
-                Console.WriteLine("Column of supplied move was out of range, valid columns are letters A-H.");
+                Console.WriteLine("Column of supplied move was out of range, valid columns are letters A-H. Press Enter to continue...");
+                Console.ReadLine();
                 return false;
             }
-            else if (row < 1 || row > 8) // invalid row
+            else if (row < 1 || row > 7) // invalid row
             {
-                Console.WriteLine("Row of supplied move was out of range, valid rows are numbers 1-8");
+                Console.WriteLine("Row of supplied move was out of range, valid rows are numbers 1-8. Press Enter to continue...");
+                Console.ReadLine();
+                return false;
+            }
+            else if (BoardState[column, row] != 'O') // attempted to play in non-empty space
+            {
+                Console.WriteLine("Cannot play in already occupied space.");
+                Console.ReadLine();
                 return false;
             }
 
@@ -78,7 +106,8 @@ namespace Othello
             }
             else
             {
-                Console.WriteLine("Supplied move was not a legal move.");
+                Console.WriteLine("Supplied move was not a legal move. Press Enter to continue...");
+                Console.ReadLine();
                 return false;
             }
         }
@@ -238,8 +267,6 @@ namespace Othello
             //    });
             //}
             #endregion
-
-
         }
 
         private int[] CheckForFlank(int[] move, int[] direction, char turnColor)
@@ -268,21 +295,23 @@ namespace Othello
                 return null;
         }
 
-        public string[] GetLegalMoves()
+        public bool HasLegalMoves(char player)
         {
-            // TODO: Implement GetValidMoves()
-            throw new NotImplementedException();
+            // TODO: Implement HasLegalMoves()
+            return true;
         }
 
         public void PrintBoard()
         {
             Console.Clear();
 
+            Console.WriteLine("  A B C D E F G H");
             for (int i = 0; i < 8; i++)
             {
+                Console.Write((i + 1) + " ");
                 for (int j = 0; j < 7; j++)
                     Console.Write(BoardState[i, j] + " ");
-                Console.WriteLine(BoardState[i, 8] + "\n");
+                Console.WriteLine(BoardState[i, 7]);
             }
         }
     }

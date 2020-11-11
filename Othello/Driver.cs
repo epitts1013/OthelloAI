@@ -66,7 +66,30 @@ namespace Othello
 
         private static void PlayMultiplayer(OthelloGame game, Queue<string> boardTrace)
         {
+            game.ResetBoard();
 
+            // game loop
+            while (game.HasLegalMoves('B') && game.HasLegalMoves('W'))
+            {
+                if (game.HasLegalMoves('B'))
+                {
+                    // loop until black player enters a legal move
+                    do
+                    {
+                        game.PrintBoard();
+                        Console.Write("\nBlack, enter your move: ");
+                    } while (!game.PlayMove(Console.ReadLine()));
+                }
+
+                if (game.HasLegalMoves('W'))
+                {
+                    do
+                    {
+                        game.PrintBoard();
+                        Console.Write("\nWhite, enter your move: ");
+                    } while (!game.PlayMove(Console.ReadLine()));
+                }
+            }
         }
     }
 }
