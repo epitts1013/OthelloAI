@@ -28,12 +28,12 @@ namespace Othello
                     BoardState[i, j] = 'O';
 
             // set white's starting pieces
+            BoardState[3, 3] = 'W';
             BoardState[4, 4] = 'W';
-            BoardState[5, 5] = 'W';
 
             // set black's starting pieces
-            BoardState[5, 4] = 'B';
-            BoardState[4, 5] = 'B';
+            BoardState[4, 3] = 'B';
+            BoardState[3, 4] = 'B';
         }
 
         // resets board to starting state
@@ -146,127 +146,10 @@ namespace Othello
                 }
             });
 
-            #region Expanded If Chain
-            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, 0 }, turnColor)) != null) // check down
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 0)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, 0 }, turnColor)) != null) // check up
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 0)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { 0, 1 }, turnColor)) != null) // check right
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += 1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { 0, -1 }, turnColor)) != null) // check left
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 0, row += -1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, 1 }, turnColor)) != null) // check down-right
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += 1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { 1, -1 }, turnColor)) != null) // check down-left
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += 1, row += -1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}                                                           
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, 1 }, turnColor)) != null) // check up-right
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += 1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-
-            //if ((flankingPiece = CheckForFlank(move, new int[] { -1, -1 }, turnColor)) != null) // check up-left
-            //{
-            //    int column = move[0], row = move[1];
-            //    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += -1, row += -1)
-            //        positionsToUpdate.Add(new int[] { column, row });
-            //}
-            #endregion
-
             if (positionsToUpdate.Count != 0)
                 return positionsToUpdate;
             else
                 return null;
-
-            #region More Old Code
-            //// list of size 2 int arrays containing indexes of positions to flip color for
-            //List<int[]> positionsToUpdate = new List<int[]>();
-
-            //// get integer representation of move
-            //int column = char.ToUpper(move[0]) - 65;
-            //int row = move[1] - 49;
-
-            //// if move is on already occupied space
-            //if (BoardState[column, row] != 'O')
-            //{
-            //    Console.WriteLine("Space is already occupied");
-            //    return null;
-            //}
-
-            //if (IsBlacksTurn)
-            //{
-            //    List<int[]> piecesToConsider = new List<int[]>();
-            //    blackPieces.ForEach(piece =>
-            //    {
-            //        // check if move is in column with another piece of the same color
-            //        if (piece[0] == column)
-            //        {
-            //            if (piece[0] > column)
-            //        }
-
-            //        // check if move is in row with another piece of the same color
-            //        if (piece[1] == row)
-            //        {
-
-            //        }
-
-            //        // check if move is on a diagonal from another piece of the same color
-            //        if (Math.Abs(column - piece[0]) == Math.Abs(row - piece[1]))
-            //        {
-
-            //        }
-            //    });
-            //}
-            //else
-            //{
-            //    List<int[]> piecesToConsider = new List<int[]>();
-            //    whitePieces.ForEach(piece =>
-            //    {
-            //        // if move is in line with another piece of the same color
-            //        if (piece[0] == column || piece[1] == row)
-            //        {
-
-            //        }
-
-            //        // check if move is on a diagonal from another piece of the same color
-            //        if (Math.Abs(column - piece[0]) == Math.Abs(row - piece[1]))
-            //        {
-
-            //        }
-            //    });
-            //}
-            #endregion
         }
 
         private int[] CheckForFlank(int[] move, int[] direction, char turnColor)

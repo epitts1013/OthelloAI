@@ -25,7 +25,7 @@ namespace Othello
             {
                 Parent = parent;
                 Children = new List<TreeNode>();
-                Ply = parent.Ply + 1;
+                Ply = parent == null ? 1 : parent.Ply + 1;
             }
 
             // add a child to the node

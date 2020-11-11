@@ -69,9 +69,10 @@ namespace Othello
             game.ResetBoard();
 
             // game loop
-            while (game.HasLegalMoves('B') && game.HasLegalMoves('W'))
+            bool blackHasMoves;
+            while ((blackHasMoves = game.HasLegalMoves('B')) && game.HasLegalMoves('W'))
             {
-                if (game.HasLegalMoves('B'))
+                if (blackHasMoves) // use cached result of game.HasLegalMoves('B') to avoid recomputation
                 {
                     // loop until black player enters a legal move
                     do
@@ -79,6 +80,11 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nBlack, enter your move: ");
                     } while (!game.PlayMove(Console.ReadLine()));
+                }
+                else
+                {
+                    Console.WriteLine("Black has no moves. Press enter to pass...");
+                    Console.ReadLine();
                 }
 
                 if (game.HasLegalMoves('W'))
@@ -88,6 +94,11 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nWhite, enter your move: ");
                     } while (!game.PlayMove(Console.ReadLine()));
+                }
+                else
+                {
+                    Console.WriteLine("Black has no moves. Press enter to pass...");
+                    Console.ReadLine();
                 }
             }
         }
