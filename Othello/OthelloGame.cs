@@ -84,7 +84,7 @@ namespace Othello
                 Console.ReadLine();
                 return false;
             }
-            else if (BoardState[column, row] != 'O') // attempted to play in non-empty space
+            else if (BoardState[row, column] != 'O') // attempted to play in non-empty space
             {
                 Console.WriteLine("Cannot play in already occupied space.");
                 Console.ReadLine();
@@ -141,8 +141,8 @@ namespace Othello
                 if ((flankingPiece = CheckForFlank(move, direction, turnColor)) != null)
                 {
                     int column = move[0], row = move[1];
-                    for (; column != flankingPiece[0] && row != flankingPiece[1]; column += direction[0], row += direction[1])
-                        positionsToUpdate.Add(new int[] { column, row });
+                    for (; !(row == flankingPiece[0] && column == flankingPiece[1]) ; column += direction[0], row += direction[1])
+                        positionsToUpdate.Add(new int[] { row, column });
                 }
             });
 
@@ -287,10 +287,10 @@ namespace Othello
                 if (column < 0 || column > 7 || row < 0 || row > 7)
                     return null;
 
-            } while (BoardState[column, row] != oppColor); // if we stop seeing the opponents piece, check why
+            } while (BoardState[row, column] == oppColor); // if we stop seeing the opponents piece, check why
 
-            if (BoardState[column, row] == turnColor) // if space is the current turns color, return the piece position
-                return new int[] { column, row };
+            if (BoardState[row, column] == turnColor) // if space is the current turns color, return the piece position
+                return new int[] { row, column };
             else
                 return null;
         }
