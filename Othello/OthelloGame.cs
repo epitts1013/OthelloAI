@@ -92,12 +92,13 @@ namespace Othello
             }
 
             List<int[]> positionsToUpdate;
-            if ((positionsToUpdate = CheckMove(new int[] { column, row })) != null)
+            char turnColor = IsBlacksTurn ? 'B' : 'W';
+            if ((positionsToUpdate = CheckMove(new int[] { column, row }, turnColor)) != null)
             {
                 // update board positions
                 positionsToUpdate.ForEach(position =>
                 {
-                    BoardState[position[0], position[1]] = IsBlacksTurn ? 'B' : 'W';
+                    BoardState[position[0], position[1]] = turnColor;
                 });
 
                 // toggle current player turn
@@ -113,7 +114,7 @@ namespace Othello
         }
 
         // returns a list positions to flip from a given move, or null if the move is illegal
-        private List<int[]> CheckMove(int[] move)
+        private List<int[]> CheckMove(int[] move, char turnColor)
         {
             // list of size 2 int arrays containing indexes of positions to flip color for
             List<int[]> positionsToUpdate = new List<int[]>();
@@ -129,9 +130,6 @@ namespace Othello
                 new int[] { -1, 1},
                 new int[] { -1, -1 }
             };
-
-            // color of current turn
-            char turnColor = IsBlacksTurn ? 'B' : 'W';
 
             // check each direction from move for a flank
             int[] flankingPiece;
@@ -160,6 +158,10 @@ namespace Othello
             // get opponent color
             char oppColor = turnColor == 'B' ? 'W' : 'B';
 
+            // tracks the number of flanked pieces
+            // start at -1 to accomodate that it must be incremented before the first do-while condition check
+            int count = -1;
+
             do
             {
                 // increment row and column by search direction
@@ -170,9 +172,10 @@ namespace Othello
                 if (column < 0 || column > 7 || row < 0 || row > 7)
                     return null;
 
+                count++;
             } while (BoardState[row, column] == oppColor); // if we stop seeing the opponents piece, check why
 
-            if (BoardState[row, column] == turnColor) // if space is the current turns color, return the piece position
+            if (BoardState[row, column] == turnColor && count > 0) // if space is the current turns color and we have flanked pieces, return the piece position
                 return new int[] { row, column };
             else
                 return null;
@@ -180,8 +183,14 @@ namespace Othello
 
         public bool HasLegalMoves(char player)
         {
-            // TODO: Implement HasLegalMoves()
-            return true;
+            // search each square of board, if a legal move is found return true
+            for (int i = 0; i < 8; i++)
+                for (int j = 0; j < 8; j++)
+                    if (CheckMove(new int[] { i, j }, player) != null) 
+                        return true;
+
+            // if whole board is scanned without finding a legal move, return false
+            return false;
         }
 
         public void PrintBoard()

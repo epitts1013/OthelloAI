@@ -17,7 +17,7 @@ namespace Othello
             OthelloAI ai = new OthelloAI();
 
             // queue stores sequence of moves from a game
-            Queue<string> boardTrace = new Queue<string>();
+            Queue<string> boardTrace;
 
             // string stores user input for processing
             string userInput;
@@ -35,10 +35,12 @@ namespace Othello
                 switch (userInput)
                 {
                     case "1":
+                        boardTrace = new Queue<string>();
                         PlaySingleplayer(game, ai, boardTrace);
                         break;
 
                     case "2":
+                        boardTrace = new Queue<string>();
                         PlayMultiplayer(game, boardTrace);
                         break;
 
@@ -68,18 +70,21 @@ namespace Othello
         {
             game.ResetBoard();
 
-            // game loop
-            bool blackHasMoves;
+            string userInput;
+
+            // game loops until neither black nor white have remaining moves
+            bool blackHasMoves; // cache result of game.HasLegalMoves('B') to avoid recomputation
             while ((blackHasMoves = game.HasLegalMoves('B')) && game.HasLegalMoves('W'))
             {
-                if (blackHasMoves) // use cached result of game.HasLegalMoves('B') to avoid recomputation
+                if (blackHasMoves)
                 {
                     // loop until black player enters a legal move
                     do
                     {
                         game.PrintBoard();
                         Console.Write("\nBlack, enter your move: ");
-                    } while (!game.PlayMove(Console.ReadLine()));
+                    } while (!game.PlayMove(userInput = Console.ReadLine()));
+                    boardTrace.Enqueue(userInput);
                 }
                 else
                 {
@@ -89,11 +94,13 @@ namespace Othello
 
                 if (game.HasLegalMoves('W'))
                 {
+                    // loop until white player enters a legal move
                     do
                     {
                         game.PrintBoard();
                         Console.Write("\nWhite, enter your move: ");
-                    } while (!game.PlayMove(Console.ReadLine()));
+                    } while (!game.PlayMove(userInput = Console.ReadLine()));
+                    boardTrace.Enqueue(userInput);
                 }
                 else
                 {
