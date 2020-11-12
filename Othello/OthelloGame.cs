@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Othello
 {
@@ -22,18 +19,18 @@ namespace Othello
             BoardState = new char[8,8];
             IsBlacksTurn = true;
             
-            // initialize all places to 'O', representing no piece
+            // initialize all places to '.', representing no piece
             for (int i = 0; i < 8; i++)
                 for (int j = 0; j < 8; j++)
-                    BoardState[i, j] = 'O';
+                    BoardState[i, j] = '.';
 
             // set white's starting pieces
-            BoardState[3, 3] = 'W';
-            BoardState[4, 4] = 'W';
+            BoardState[3, 3] = 'O';
+            BoardState[4, 4] = 'O';
 
             // set black's starting pieces
-            BoardState[4, 3] = 'B';
-            BoardState[3, 4] = 'B';
+            BoardState[4, 3] = '@';
+            BoardState[3, 4] = '@';
         }
 
         // resets board to starting state
@@ -41,58 +38,69 @@ namespace Othello
         {
             IsBlacksTurn = true;
 
-            // initialize all places to 'O', representing no piece
+            // initialize all places to '.', representing no piece
             for (int i = 0; i < 8; i++)
                 for (int j = 0; j < 8; j++)
-                    BoardState[i, j] = 'O';
+                    BoardState[i, j] = '.';
 
             // set white's starting pieces
-            BoardState[3, 3] = 'W';
-            BoardState[4, 4] = 'W';
+            BoardState[3, 3] = 'O';
+            BoardState[4, 4] = 'O';
 
             // set black's starting pieces
-            BoardState[4, 3] = 'B';
-            BoardState[3, 4] = 'B';
+            BoardState[4, 3] = '@';
+            BoardState[3, 4] = '@';
         }
 
         // returns true if valid move was played
         public bool PlayMove(string move)
         {
-            // convert move to character array for parsing
-            char[] moveArray = move.ToCharArray();
+            // validate move format
+            if (!Regex.IsMatch(move, @"\A[A-Ha-h][1-8]\Z"))
+            {
+                Console.WriteLine("Move format invalid. Move should be column A-H followed by row 1-8, i.e. \"A1\", \"B4\", \"C6\".\nPress Enter to continue...");
+                Console.ReadLine();
+                return false;
+            }
 
             // get integer representation of move
-            int column = char.ToUpper(moveArray[0]) - 65;
-            int row = moveArray[1] - 49;
+            int column = char.ToUpper(move.ToCharArray()[0]) - 65;
+            int row = move.ToCharArray()[1] - 49;
 
-            // checks for invalid move input
-            if (moveArray.Length != 2 || !char.IsLetter(moveArray[0]) || !char.IsDigit(moveArray[1])) // invalid length or format
+            // make sure move is in an empty space
+            if (BoardState[row, column] != '.')
             {
-                Console.WriteLine("Format of supplied move was invalid. Move should be given as a character column followed by a numeric row, i.e. \"A1\", \"B4\", \"C6\". Press Enter to continue...");
-                Console.ReadLine();
-                return false;
-            }
-            else if (column < 1 || column > 7) // invalid column
-            {
-                Console.WriteLine("Column of supplied move was out of range, valid columns are letters A-H. Press Enter to continue...");
-                Console.ReadLine();
-                return false;
-            }
-            else if (row < 1 || row > 7) // invalid row
-            {
-                Console.WriteLine("Row of supplied move was out of range, valid rows are numbers 1-8. Press Enter to continue...");
-                Console.ReadLine();
-                return false;
-            }
-            else if (BoardState[row, column] != 'O') // attempted to play in non-empty space
-            {
-                Console.WriteLine("Cannot play in already occupied space.");
+                Console.WriteLine("Cannot play in already occupied space. Press enter to continue...");
                 Console.ReadLine();
                 return false;
             }
 
+            #region Old Validation Code
+            //// checks for invalid move format
+            //if (moveArray.Length != 2 || !char.IsLetter(moveArray[0]) || !char.IsDigit(moveArray[1])) // invalid length or format
+            //{
+            //    Console.WriteLine("Format of supplied move was invalid. Move should be given as a character column followed by a numeric row, i.e. \"A1\", \"B4\", \"C6\". Press Enter to continue...");
+            //    Console.ReadLine();
+            //    return false;
+            //}
+            //// check for invalid move parameters
+            //if (column < 0 || column > 7) // invalid column
+            //{
+            //    Console.WriteLine("Column of supplied move was out of range, valid columns are letters A-H. Press Enter to continue...");
+            //    Console.ReadLine();
+            //    return false;
+            //}
+            //else if (row < 0 || row > 7) // invalid row
+            //{
+            //    Console.WriteLine("Row of supplied move was out of range, valid rows are numbers 1-8. Press Enter to continue...");
+            //    Console.ReadLine();
+            //    return false;
+            //}
+            #endregion
+
+            // check if the supplied move is legal, if it is, play it
             List<int[]> positionsToUpdate;
-            char turnColor = IsBlacksTurn ? 'B' : 'W';
+            char turnColor = IsBlacksTurn ? '@' : 'O';
             if ((positionsToUpdate = CheckMove(new int[] { column, row }, turnColor)) != null)
             {
                 // update board positions
@@ -105,7 +113,7 @@ namespace Othello
                 IsBlacksTurn = !IsBlacksTurn;
                 return true;
             }
-            else
+            else // if the move is not legal, inform the player
             {
                 Console.WriteLine("Supplied move was not a legal move. Press Enter to continue...");
                 Console.ReadLine();
@@ -116,6 +124,10 @@ namespace Othello
         // returns a list positions to flip from a given move, or null if the move is illegal
         private List<int[]> CheckMove(int[] move, char turnColor)
         {
+            // check if space is already occupied
+            if (BoardState[move[1], move[0]] != '.')
+                return null;
+
             // list of size 2 int arrays containing indexes of positions to flip color for
             List<int[]> positionsToUpdate = new List<int[]>();
 
@@ -144,6 +156,7 @@ namespace Othello
                 }
             });
 
+            // if any positions should be updated, return them, else return null
             if (positionsToUpdate.Count != 0)
                 return positionsToUpdate;
             else
@@ -156,7 +169,7 @@ namespace Othello
             int column = move[0], row = move[1];
 
             // get opponent color
-            char oppColor = turnColor == 'B' ? 'W' : 'B';
+            char oppColor = turnColor == '@' ? 'O' : '@';
 
             // tracks the number of flanked pieces
             // start at -1 to accomodate that it must be incremented before the first do-while condition check
@@ -175,7 +188,9 @@ namespace Othello
                 count++;
             } while (BoardState[row, column] == oppColor); // if we stop seeing the opponents piece, check why
 
-            if (BoardState[row, column] == turnColor && count > 0) // if space is the current turns color and we have flanked pieces, return the piece position
+            // if space is the current turns color and we have flanked pieces, return the piece position
+            // else return null
+            if (BoardState[row, column] == turnColor && count > 0)
                 return new int[] { row, column };
             else
                 return null;
