@@ -51,7 +51,9 @@ namespace Othello
                 AlphaBetaSearch(boardState, MAX_DEPTH, int.MinValue, int.MaxValue, IsBlackPlayer);
             }
             else
+            {
                 MinimaxSearch(boardState, MAX_DEPTH, IsBlackPlayer);
+            }
 
             // TODO: Finish method
         }
@@ -67,12 +69,13 @@ namespace Othello
             char[,] stateCopy;
 
             // get player color
-            char color = IsBlackPlayer ? '@' : 'O';
+            char color = maximizingPlayer ? '@' : 'O';
 
             if (maximizingPlayer)
             {
                 int maxEval = int.MinValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
+                // TODO: if validMoves == null
                 validMoves.ForEach(position =>
                 {
                     stateCopy = (char[,])boardState.Clone();
@@ -86,6 +89,7 @@ namespace Othello
             {
                 int minEval = int.MaxValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
+                // TODO: if validMoves == null
                 validMoves.ForEach(position =>
                 {
                     stateCopy = (char[,])boardState.Clone();
@@ -107,12 +111,13 @@ namespace Othello
             char[,] stateCopy;
 
             // get player color
-            char color = IsBlackPlayer ? '@' : 'O';
+            char color = maximizingPlayer ? '@' : 'O';
 
             if (maximizingPlayer)
             {
                 int maxEval = int.MinValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
+                // TODO: if validMoves == null
                 foreach(int[] position in validMoves)
                 {
                     stateCopy = (char[,])boardState.Clone();
@@ -129,6 +134,7 @@ namespace Othello
             {
                 int minEval = int.MaxValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
+                // TODO: if validMoves == null
                 foreach (int[] position in validMoves)
                 {
                     stateCopy = (char[,])boardState.Clone();
@@ -146,13 +152,30 @@ namespace Othello
         // apply the supplied move to the supplied copy of the board
         private void ApplyMove(int[] move, char[,] boardCopy, char turnColor)
         {
-            throw new NotImplementedException();
+            List<int[]> positionsToUpdate = AttachedGame.CheckMove(move, turnColor, boardCopy);
+            positionsToUpdate.ForEach(position =>
+            {
+                boardCopy[position[0], position[1]] = turnColor;
+            });
         }
 
         // returns list of valid positions to consider, or null if none are found
         private List<int[]> GetValidMoves(char color, char[,] boardState)
         {
-            throw new NotImplementedException();
+            // list of valid moves to return
+            List<int[]> validMoves = new List<int[]>();
+
+            // search each square of board, if a legal move is found return true
+            for (int i = 0; i < 8; i++)
+                for (int j = 0; j < 8; j++)
+                    if (AttachedGame.CheckMove(new int[] { i, j }, color, boardState) != null)
+                        validMoves.Add(new int[] { i, j });
+
+            // if any valid moves are found, return list, else return null
+            if (validMoves.Count > 0)
+                return validMoves;
+            else
+                return null;
         }
 
         private int EvaluatePosition(char[,] boardState)
@@ -160,9 +183,10 @@ namespace Othello
             throw new NotImplementedException();
         }
 
+        // returns true if there are no legal moves for either black or white
         private bool GameOver(char[,] boardState)
         {
-            throw new NotImplementedException();
+            return (!AttachedGame.HasLegalMoves('@', boardState) && !AttachedGame.HasLegalMoves('O', boardState));
         }
     }
 }
