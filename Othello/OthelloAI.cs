@@ -43,19 +43,58 @@ namespace Othello
             movesConsidered = 0;
 
             // get current board state from game
-            char[,] boardState = (char[,]) AttachedGame.BoardState.Clone();
+            char[,] boardCopy;
 
-            // TODO: These methods should be called on the current available moves
+            // get color
+            char color = IsBlackPlayer ? '@' : 'O';
+
+            // stores the move determined to be best by given algorithm
+            int[] bestEvaluatedMove = null;
+
+            // TODO: AlphaBeta needs the updated alpha and beta information
             if (AlphaBetaActive)
             {
-                AlphaBetaSearch(boardState, MAX_DEPTH, int.MinValue, int.MaxValue, IsBlackPlayer);
+                int alpha = IsBlackPlayer ? int.MinValue : int.MaxValue;
+                int beta = IsBlackPlayer ? int.MaxValue : int.MinValue;
+                int maxEval = int.MinValue, eval;
+                List<int[]> validMoves = GetValidMoves(color, AttachedGame.BoardState);
+                validMoves.ForEach(position =>
+                {
+                    boardCopy = (char[,])AttachedGame.BoardState.Clone();
+                    ApplyMove(position, boardCopy, color);
+                    eval = AlphaBetaSearch(boardCopy, MAX_DEPTH, alpha, beta, IsBlackPlayer);
+
+                    if (IsBlackPlayer)
+                        alpha = Math.Max(alpha, eval);
+                    else
+                        beta = Math.Max(beta, eval);
+
+                    if (eval > maxEval)
+                    {
+                        maxEval = eval;
+                        bestEvaluatedMove = position;
+                    }
+                });
             }
             else
             {
-                MinimaxSearch(boardState, MAX_DEPTH, IsBlackPlayer);
+                int maxEval = int.MinValue, eval;
+                List<int[]> validMoves = GetValidMoves(color, AttachedGame.BoardState);
+                validMoves.ForEach(position =>
+                {
+                    boardCopy = (char[,])AttachedGame.BoardState.Clone();
+                    ApplyMove(position, boardCopy, color);
+                    eval = MinimaxSearch(boardCopy, MAX_DEPTH, IsBlackPlayer);
+                    if (eval > maxEval)
+                    {
+                        maxEval = eval;
+                        bestEvaluatedMove = position;
+                    }
+                });
             }
 
-            // TODO: Finish method
+            // play the determined best move
+            AttachedGame.PlayMove(bestEvaluatedMove);
         }
 
         // performs minimax search

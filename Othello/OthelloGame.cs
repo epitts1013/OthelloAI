@@ -121,6 +121,31 @@ namespace Othello
             }
         }
 
+        public bool PlayMove(int[] move)
+        {
+            // check if the supplied move is legal, if it is, play it
+            List<int[]> positionsToUpdate;
+            char turnColor = IsBlacksTurn ? '@' : 'O';
+            if ((positionsToUpdate = CheckMove(new int[] { move[0], move[1] }, turnColor, BoardState)) != null)
+            {
+                // update board positions
+                positionsToUpdate.ForEach(position =>
+                {
+                    BoardState[position[0], position[1]] = turnColor;
+                });
+
+                // toggle current player turn
+                IsBlacksTurn = !IsBlacksTurn;
+                return true;
+            }
+            else // if the move is not legal, inform the player
+            {
+                Console.WriteLine("Supplied move was not a legal move. Press Enter to continue...");
+                Console.ReadLine();
+                return false;
+            }
+        }
+
         // returns a list positions to flip from a given move, or null if the move is illegal
         public List<int[]> CheckMove(int[] move, char turnColor, char[,] boardState)
         {
