@@ -20,7 +20,7 @@ namespace Othello
         public bool AlphaBetaActive { get; private set; }
 
         // tracks the number of moves considered when deciding on a move
-        private int movesConsidered;
+        private int statesAnalyzed;
 
         // default constructor
         public OthelloAI(OthelloGame attachedGame, bool isBlackPlayer)
@@ -40,7 +40,7 @@ namespace Othello
         public int[] ChooseMove()
         {
             // reset moves considered
-            movesConsidered = 0;
+            statesAnalyzed = 0;
 
             // get current board state from game
             char[,] boardCopy;
@@ -74,6 +74,7 @@ namespace Othello
                         maxEval = eval;
                         bestEvaluatedMove = position;
                     }
+                    statesAnalyzed++;
                 });
             }
             else
@@ -90,8 +91,13 @@ namespace Othello
                         maxEval = eval;
                         bestEvaluatedMove = position;
                     }
+                    statesAnalyzed++;
                 });
             }
+
+            // print number of analyzed states
+            Console.WriteLine($"AI analyzed {statesAnalyzed} board states before reaching conclusion.\nPress enter to continue...");
+            Console.ReadLine();
 
             // return the determined best move
             return bestEvaluatedMove;
@@ -129,6 +135,7 @@ namespace Othello
                         ApplyMove(position, stateCopy, color);
                         int eval = MinimaxSearch(stateCopy, depth - 1, false);
                         maxEval = Math.Max(maxEval, eval);
+                        statesAnalyzed++;
                     });
                 }
                 return maxEval;
@@ -152,6 +159,7 @@ namespace Othello
                         ApplyMove(position, stateCopy, color);
                         int eval = MinimaxSearch(stateCopy, depth - 1, true);
                         minEval = Math.Min(minEval, eval);
+                        statesAnalyzed++;
                     });
                 }
                 return minEval;
@@ -188,6 +196,7 @@ namespace Othello
                     {
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
+                        statesAnalyzed++;
                         int eval = AlphaBetaSearch(stateCopy, depth - 1, alpha, beta, false);
                         maxEval = Math.Max(maxEval, eval);
                         alpha = Math.Max(alpha, eval);
@@ -213,6 +222,7 @@ namespace Othello
                     {
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
+                        statesAnalyzed++;
                         int eval = MinimaxSearch(stateCopy, depth - 1, true);
                         minEval = Math.Min(minEval, eval);
                         beta = Math.Min(beta, eval);

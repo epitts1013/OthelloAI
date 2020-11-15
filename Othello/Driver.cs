@@ -6,6 +6,9 @@ namespace Othello
 {
     class Driver
     {
+        // debug mode
+        public static bool DEBUG_MODE = false;
+
         static void Main(string[] args)
         {
             // object tracks Othello game
@@ -127,6 +130,9 @@ namespace Othello
             // begin gameplay
             game.ResetBoard();
 
+            // bool tracks whether player entered move or a command such as toggling alpha-beta
+            bool validMoveEntered;
+
             // game loops until neither black nor white have remaining moves
             bool blackHasMoves; // cache result of game.HasLegalMoves('B') to avoid recomputation
             while ((blackHasMoves = game.HasLegalMoves('@')) && game.HasLegalMoves('O'))
@@ -141,7 +147,24 @@ namespace Othello
                         {
                             game.PrintBoard();
                             Console.Write("\nBlack, enter your move: ");
-                        } while (!game.PlayMove(userInput = Console.ReadLine()));
+                            userInput = Console.ReadLine();
+                            switch (userInput)
+                            {
+                                case "-1":
+                                    ai.ToggleAlphaBeta();
+                                    validMoveEntered = false;
+                                    break;
+
+                                case "-2":
+                                    DEBUG_MODE = !DEBUG_MODE;
+                                    validMoveEntered = false;
+                                    break;
+
+                                default:
+                                    validMoveEntered = game.PlayMove(userInput);
+                                    break;
+                            }
+                        } while (!validMoveEntered);
                         boardTrace.Enqueue(userInput);
                     }
                     else
@@ -152,8 +175,7 @@ namespace Othello
 
                     // wait for user to let ai move
                     game.PrintBoard();
-                    Console.WriteLine("White's turn, press enter to continue...");
-                    Console.ReadLine();
+                    Console.WriteLine("White's turn");
 
                     if (game.HasLegalMoves('O'))
                     {
@@ -172,8 +194,7 @@ namespace Othello
                 {
                     // wait for user to let ai move
                     game.PrintBoard();
-                    Console.WriteLine("Black's turn, press enter to continue...");
-                    Console.ReadLine();
+                    Console.WriteLine("Black's turn");
 
                     if (blackHasMoves)
                     {
@@ -194,8 +215,28 @@ namespace Othello
                         do
                         {
                             game.PrintBoard();
-                            Console.Write("\nWhite, enter your move: ");
-                        } while (!game.PlayMove(userInput = Console.ReadLine()));
+                            Console.WriteLine("Enter move as ColRow, -1 to toggle Alpha-Beta Pruning, -2 to toggle debug mode");
+                            Console.Write("\nWhite, enter your move/selection: ");
+                            userInput = Console.ReadLine();
+                            switch (userInput)
+                            {
+                                case "-1":
+                                    ai.ToggleAlphaBeta();
+                                    validMoveEntered = false;
+                                    Console.WriteLine($"Alpha-Beta Active is now {ai.AlphaBetaActive}");
+                                    break;
+
+                                case "-2":
+                                    DEBUG_MODE = !DEBUG_MODE;
+                                    validMoveEntered = false;
+                                    Console.WriteLine($"Debug mode is now {DEBUG_MODE}");
+                                    break;
+
+                                default:
+                                    validMoveEntered = game.PlayMove(userInput);
+                                    break;
+                            }
+                        } while (!validMoveEntered);
                         boardTrace.Enqueue(userInput);
                     }
                     else
