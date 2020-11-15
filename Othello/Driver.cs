@@ -1,4 +1,15 @@
-﻿using System;
+﻿/* Name: Eric Pitts
+ * CWID: 102-57-729
+ * Date: 11-8-2020
+ * Assignment-3: Othello AI
+ * Description: Program plays the game Othello, based on the game Reversi, with either one or two human players.
+ * From the main menu a user can select a one player game, where they will play against an AI implementing minimax
+ * with alpha-beta pruning, or they can select a two player game, where they can play against another human player.
+ * Program provides a way to view the trace, or sequence of moves, from the previous game, and save such a trace to
+ * a text file.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -53,10 +64,28 @@ namespace Othello
                                 boardTrace.Enqueue(boardTrace.Dequeue());
                             }
                         }
-                        else Console.WriteLine("Game must be played or board trace must be loaded before viewing.");
+                        else Console.WriteLine("Game must be played before viewing board trace.\nPress enter to continue...");
+                        Console.ReadLine();
                         break;
 
                     case "4":
+                        if (boardTrace != null)
+                        {
+                            string filePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\";
+                            Console.Write("Give name to board trace file: ");
+                            filePath += Console.ReadLine();
+                            try
+                            {
+                                System.IO.File.WriteAllLines(filePath, boardTrace);
+                                Console.WriteLine($"File write successful. File saved to {filePath}.");
+                            }
+                            catch (System.IO.IOException)
+                            {
+                                Console.WriteLine("There was an error writing to file.");
+                            }                            
+                        }
+                        else Console.WriteLine("Game must be played before saving board trace.\nPress enter to continue...");
+                        Console.ReadLine();
                         break;
 
                     case "5":
@@ -170,7 +199,7 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue(userInput);
+                        boardTrace.Enqueue(userInput.ToUpper());
                     }
                     else
                     {
@@ -244,7 +273,7 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue(userInput);
+                        boardTrace.Enqueue(userInput.ToUpper());
                     }
                     else
                     {
@@ -275,6 +304,7 @@ namespace Othello
                 Console.WriteLine("Game Tied!");
 
             Console.WriteLine($"Black Score: {blackScore}\nWhite Score: {whiteScore}");
+            boardTrace.Enqueue($"Final Score:\nBlack Score: {blackScore}\nWhite Score: {whiteScore}");
             Console.WriteLine("Press enter to continue...");
             Console.ReadLine();
         }
@@ -297,7 +327,7 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nBlack, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue(userInput);
+                    boardTrace.Enqueue(userInput.ToUpper());
                 }
                 else
                 {
@@ -313,7 +343,7 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nWhite, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue(userInput);
+                    boardTrace.Enqueue(userInput.ToUpper());
                 }
                 else
                 {
