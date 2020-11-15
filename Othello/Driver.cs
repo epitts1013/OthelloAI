@@ -77,7 +77,7 @@ namespace Othello
                             try
                             {
                                 System.IO.File.WriteAllLines(filePath, boardTrace);
-                                Console.WriteLine($"File write successful. File saved to {filePath}.");
+                                Console.WriteLine($"File write successful. File saved to {filePath}.\nPress enter to continue...");
                             }
                             catch (System.IO.IOException)
                             {
@@ -201,7 +201,7 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue(userInput.ToUpper());
+                        boardTrace.Enqueue("Black: " + userInput.ToUpper());
                     }
                     else
                     {
@@ -218,7 +218,7 @@ namespace Othello
                         int[] aiMove = ai.ChooseMove();
                         game.PlayMove(aiMove);
                         string aiMoveFormatted = FormatAIMove(aiMove);
-                        boardTrace.Enqueue(aiMoveFormatted);
+                        boardTrace.Enqueue("White: " + aiMoveFormatted);
                     }
                     else
                     {
@@ -237,7 +237,7 @@ namespace Othello
                         int[] aiMove = ai.ChooseMove();
                         game.PlayMove(aiMove);
                         string aiMoveFormatted = FormatAIMove(aiMove);
-                        boardTrace.Enqueue(aiMoveFormatted);
+                        boardTrace.Enqueue("Black: " + aiMoveFormatted);
                     }
                     else
                     {
@@ -275,7 +275,7 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue(userInput.ToUpper());
+                        boardTrace.Enqueue("White: " + userInput.ToUpper());
                     }
                     else
                     {
@@ -329,7 +329,7 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nBlack, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue(userInput.ToUpper());
+                    boardTrace.Enqueue("Black: " + userInput.ToUpper());
                 }
                 else
                 {
@@ -345,7 +345,7 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nWhite, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue(userInput.ToUpper());
+                    boardTrace.Enqueue("White: " + userInput.ToUpper());
                 }
                 else
                 {
