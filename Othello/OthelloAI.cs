@@ -19,8 +19,9 @@ namespace Othello
         // determines whether alpha-beta pruning is active
         public bool AlphaBetaActive { get; private set; }
 
-        // tracks the number of moves considered when deciding on a move
+        // debug information
         private int statesAnalyzed;
+        private Stack<int[]> analysisStack = new Stack<int[]>();
 
         // default constructor
         public OthelloAI(OthelloGame attachedGame, bool isBlackPlayer)
@@ -62,7 +63,9 @@ namespace Othello
                 {
                     boardCopy = (char[,])AttachedGame.BoardState.Clone();
                     ApplyMove(position, boardCopy, color);
+                    analysisStack.Push(position);
                     eval = AlphaBetaSearch(boardCopy, MAX_DEPTH - 1, alpha, beta, IsBlackPlayer);
+                    analysisStack.Pop();
 
                     if (IsBlackPlayer)
                         alpha = Math.Max(alpha, eval);
@@ -85,7 +88,9 @@ namespace Othello
                 {
                     boardCopy = (char[,])AttachedGame.BoardState.Clone();
                     ApplyMove(position, boardCopy, color);
+                    analysisStack.Push(position);
                     eval = MinimaxSearch(boardCopy, MAX_DEPTH - 1, IsBlackPlayer);
+                    analysisStack.Pop();
                     if (eval > maxEval)
                     {
                         maxEval = eval;
@@ -108,7 +113,11 @@ namespace Othello
         {
             // evaluate board if in gameover position or at max depth
             if (depth == 0 || GameOver(boardState))
+            {
+                if (Driver.DEBUG_MODE)
+                    PrintAnalysisStack();
                 return EvaluatePosition(boardState);
+            }
 
             // copy of board that can be safely modified
             char[,] stateCopy;
@@ -124,7 +133,9 @@ namespace Othello
                 // if there's no moves available, pass to the next ply
                 if (validMoves == null)
                 {
+                    analysisStack.Push(new int[] { -1, -1 });
                     int eval = MinimaxSearch(boardState, depth - 1, false);
+                    analysisStack.Pop();
                     maxEval = Math.Max(maxEval, eval);
                 }
                 else // else if moves are available, loop through them
@@ -133,7 +144,9 @@ namespace Othello
                     {
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
+                        analysisStack.Push(position);
                         int eval = MinimaxSearch(stateCopy, depth - 1, false);
+                        analysisStack.Pop();
                         maxEval = Math.Max(maxEval, eval);
                         statesAnalyzed++;
                     });
@@ -148,7 +161,9 @@ namespace Othello
                 // if there's no moves available, pass to the next ply
                 if (validMoves == null)
                 {
+                    analysisStack.Push(new int[] { -1, -1 });
                     int eval = MinimaxSearch(boardState, depth - 1, true);
+                    analysisStack.Pop();
                     minEval = Math.Min(minEval, eval);
                 }
                 else // else if moves are available, loop through them
@@ -157,7 +172,9 @@ namespace Othello
                     {
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
+                        analysisStack.Push(position);
                         int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                        analysisStack.Pop();
                         minEval = Math.Min(minEval, eval);
                         statesAnalyzed++;
                     });
@@ -170,7 +187,11 @@ namespace Othello
         {
             // evaluate board if in gameover position or at max depth
             if (depth == 0 || GameOver(boardState))
+            {
+                if (Driver.DEBUG_MODE)
+                    PrintAnalysisStack();
                 return EvaluatePosition(boardState);
+            }
 
             // make copy of board that can be safely modified
             char[,] stateCopy;
@@ -186,7 +207,9 @@ namespace Othello
                 // if there's no moves available, pass to the next ply
                 if (validMoves == null)
                 {
+                    analysisStack.Push(new int[] { -1, -1 });
                     int eval = AlphaBetaSearch(boardState, depth - 1, alpha, beta, false);
+                    analysisStack.Pop();
                     maxEval = Math.Max(maxEval, eval);
                 }
                 else // else if moves are available, loop through them
@@ -197,7 +220,9 @@ namespace Othello
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
                         statesAnalyzed++;
+                        analysisStack.Push(position);
                         int eval = AlphaBetaSearch(stateCopy, depth - 1, alpha, beta, false);
+                        analysisStack.Pop();
                         maxEval = Math.Max(maxEval, eval);
                         alpha = Math.Max(alpha, eval);
                         if (beta <= alpha)
@@ -213,7 +238,9 @@ namespace Othello
                 // if there's no moves available, pass to the next ply
                 if (validMoves == null)
                 {
+                    analysisStack.Push(new int[] { -1, -1 });
                     int eval = AlphaBetaSearch(boardState, depth - 1, alpha, beta, true);
+                    analysisStack.Pop();
                     minEval = Math.Min(minEval, eval);
                 }
                 else // else if moves are available, loop through them
@@ -223,7 +250,9 @@ namespace Othello
                         stateCopy = (char[,])boardState.Clone();
                         ApplyMove(position, stateCopy, color);
                         statesAnalyzed++;
+                        analysisStack.Push(position);
                         int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                        analysisStack.Pop();
                         minEval = Math.Min(minEval, eval);
                         beta = Math.Min(beta, eval);
                         if (beta <= alpha)
@@ -340,6 +369,21 @@ namespace Othello
         private bool GameOver(char[,] boardState)
         {
             return (!AttachedGame.HasLegalMoves('@', boardState) && !AttachedGame.HasLegalMoves('O', boardState));
+        }
+
+        private void PrintAnalysisStack()
+        {
+            string output = "";
+            List<int[]> stackList = new List<int[]>(analysisStack);
+            stackList.Reverse();
+            stackList.ForEach(position => 
+            {
+                if (position[0] != -1 && position[1] != -1)
+                    output += Driver.FormatAIMove(position) + " -> ";
+                else
+                    output += "Pass -> ";
+            });
+            Console.WriteLine(output.Substring(0, output.Length - 4));
         }
     }
 }

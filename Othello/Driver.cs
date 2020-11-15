@@ -347,7 +347,7 @@ namespace Othello
             Console.ReadLine();
         }
 
-        private static string FormatAIMove(int[] aiMove)
+        public static string FormatAIMove(int[] aiMove)
         {
             char column = (char)(aiMove[0] + 65);
             char row = (char)(aiMove[1] + 49);
