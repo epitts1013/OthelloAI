@@ -146,18 +146,23 @@ namespace Othello
                         do
                         {
                             game.PrintBoard();
-                            Console.Write("\nBlack, enter your move: ");
+                            Console.WriteLine("Enter move as ColRow, -1 to toggle Alpha-Beta Pruning, or -2 to toggle debug mode");
+                            Console.Write("\nBlack, enter your selection: ");
                             userInput = Console.ReadLine();
                             switch (userInput)
                             {
                                 case "-1":
                                     ai.ToggleAlphaBeta();
                                     validMoveEntered = false;
+                                    Console.WriteLine($"Alpha-Beta Active is now {ai.AlphaBetaActive}\nPress enter to continue...");
+                                    Console.ReadLine();
                                     break;
 
                                 case "-2":
                                     DEBUG_MODE = !DEBUG_MODE;
                                     validMoveEntered = false;
+                                    Console.WriteLine($"Debug mode is now {DEBUG_MODE}\nPress enter to continue...");
+                                    Console.ReadLine();
                                     break;
 
                                 default:
@@ -215,7 +220,7 @@ namespace Othello
                         do
                         {
                             game.PrintBoard();
-                            Console.WriteLine("Enter move as ColRow, -1 to toggle Alpha-Beta Pruning, -2 to toggle debug mode");
+                            Console.WriteLine("Enter move as ColRow, -1 to toggle Alpha-Beta Pruning, or -2 to toggle debug mode");
                             Console.Write("\nWhite, enter your move/selection: ");
                             userInput = Console.ReadLine();
                             switch (userInput)
@@ -223,13 +228,15 @@ namespace Othello
                                 case "-1":
                                     ai.ToggleAlphaBeta();
                                     validMoveEntered = false;
-                                    Console.WriteLine($"Alpha-Beta Active is now {ai.AlphaBetaActive}");
+                                    Console.WriteLine($"Alpha-Beta Active is now {ai.AlphaBetaActive}\nPress enter to continue...");
+                                    Console.ReadLine();
                                     break;
 
                                 case "-2":
                                     DEBUG_MODE = !DEBUG_MODE;
                                     validMoveEntered = false;
-                                    Console.WriteLine($"Debug mode is now {DEBUG_MODE}");
+                                    Console.WriteLine($"Debug mode is now {DEBUG_MODE}\nPress enter to continue...");
+                                    Console.ReadLine();
                                     break;
 
                                 default:
