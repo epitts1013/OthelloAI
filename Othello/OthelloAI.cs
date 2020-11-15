@@ -62,7 +62,7 @@ namespace Othello
                 {
                     boardCopy = (char[,])AttachedGame.BoardState.Clone();
                     ApplyMove(position, boardCopy, color);
-                    eval = AlphaBetaSearch(boardCopy, MAX_DEPTH, alpha, beta, IsBlackPlayer);
+                    eval = AlphaBetaSearch(boardCopy, MAX_DEPTH - 1, alpha, beta, IsBlackPlayer);
 
                     if (IsBlackPlayer)
                         alpha = Math.Max(alpha, eval);
@@ -85,7 +85,7 @@ namespace Othello
                 {
                     boardCopy = (char[,])AttachedGame.BoardState.Clone();
                     ApplyMove(position, boardCopy, color);
-                    eval = MinimaxSearch(boardCopy, MAX_DEPTH, IsBlackPlayer);
+                    eval = MinimaxSearch(boardCopy, MAX_DEPTH - 1, IsBlackPlayer);
                     if (eval > maxEval)
                     {
                         maxEval = eval;
