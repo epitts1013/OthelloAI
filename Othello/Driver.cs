@@ -126,6 +126,7 @@ namespace Othello
 
                         // initialize AI
                         ai = new OthelloAI(game, false);
+                        boardTrace.Enqueue("Human Player: Black\nAI: White");
                     }
                     else // if human chose white, do the reverse
                     {
@@ -135,6 +136,7 @@ namespace Othello
 
                         // initialize AI
                         ai = new OthelloAI(game, true);
+                        boardTrace.Enqueue("Human Player: White\nAI: Black");
                     }
                     validInput = true;
                 }

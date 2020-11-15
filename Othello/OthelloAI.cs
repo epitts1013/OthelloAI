@@ -114,9 +114,10 @@ namespace Othello
             // evaluate board if in gameover position or at max depth
             if (depth == 0 || GameOver(boardState))
             {
+                int evaulation = EvaluatePosition(boardState);
                 if (Driver.DEBUG_MODE)
-                    PrintAnalysisStack();
-                return EvaluatePosition(boardState);
+                    PrintAnalysisStack(evaulation);
+                return evaulation;
             }
 
             // copy of board that can be safely modified
@@ -188,9 +189,10 @@ namespace Othello
             // evaluate board if in gameover position or at max depth
             if (depth == 0 || GameOver(boardState))
             {
+                int evaulation = EvaluatePosition(boardState);
                 if (Driver.DEBUG_MODE)
-                    PrintAnalysisStack();
-                return EvaluatePosition(boardState);
+                    PrintAnalysisStack(evaulation);
+                return evaulation;
             }
 
             // make copy of board that can be safely modified
@@ -371,7 +373,7 @@ namespace Othello
             return (!AttachedGame.HasLegalMoves('@', boardState) && !AttachedGame.HasLegalMoves('O', boardState));
         }
 
-        private void PrintAnalysisStack()
+        private void PrintAnalysisStack(int evaluation)
         {
             string output = "";
             List<int[]> stackList = new List<int[]>(analysisStack);
@@ -383,7 +385,7 @@ namespace Othello
                 else
                     output += "Pass -> ";
             });
-            Console.WriteLine(output.Substring(0, output.Length - 4));
+            Console.WriteLine(output.Substring(0, output.Length - 4) + $" Eval: {evaluation}");
         }
     }
 }
