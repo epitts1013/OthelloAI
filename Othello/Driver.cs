@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Othello
 {
@@ -9,9 +10,6 @@ namespace Othello
         {
             // object tracks Othello game
             OthelloGame game = new OthelloGame();
-
-            // object controls Othello AI
-            OthelloAI ai = new OthelloAI();
 
             // queue stores sequence of moves from a game
             Queue<string> boardTrace = null;
@@ -35,7 +33,7 @@ namespace Othello
                 {
                     case "1":
                         boardTrace = new Queue<string>();
-                        PlaySingleplayer(game, ai, boardTrace);
+                        InitSingleplayer(game, boardTrace);
                         break;
 
                     case "2":
@@ -70,9 +68,167 @@ namespace Othello
             }
         }
 
-        private static void PlaySingleplayer(OthelloGame game, OthelloAI ai, Queue<string> boardTrace)
+        private static void InitSingleplayer(OthelloGame game, Queue<string> boardTrace)
         {
-            throw new NotImplementedException();
+            char playerColor = '\0', aiColor = '\0';
+            string userInput;
+            bool validInput = false;
+            OthelloAI ai = null;
+
+            // loop until user gives a valid color selection
+            while (!validInput)
+            {
+                Console.Clear();
+                Console.Write("Pick the human player color (B/W): ");
+                userInput = Console.ReadLine();
+
+                // if users input matches one of the selection options, assign colors
+                if (userInput.Length == 1 && Regex.IsMatch(userInput, "[BbWw]"))
+                {
+                    // if human chose black, assign human black color and ai white color
+                    if (Regex.IsMatch(userInput, "[Bb]"))
+                    {
+                        // initialize colors
+                        playerColor = '@';
+                        aiColor = 'O';
+
+                        // initialize AI
+                        ai = new OthelloAI(game, false);
+                    }
+                    else // if human chose white, do the reverse
+                    {
+                        // initialize colors
+                        playerColor = 'O';
+                        aiColor = '@';
+
+                        // initialize AI
+                        ai = new OthelloAI(game, true);
+                    }
+                    validInput = true;
+                }
+                else
+                {
+                    Console.WriteLine("Entered color selection was invalid, please try again.\nPress enter to continue...");
+                    Console.ReadLine();
+                }
+            }
+
+            Console.WriteLine("Player pieces are: " + playerColor + "\nAI pieces are: " + aiColor + "\nPress enter to begin...");
+            Console.ReadLine();
+
+            bool playerIsBlack = playerColor == '@';
+            PlaySingleplayer(game, ai, boardTrace, playerIsBlack);
+        }
+
+        private static void PlaySingleplayer(OthelloGame game, OthelloAI ai, Queue<string> boardTrace, bool playerIsBlack)
+        {
+            string userInput;
+
+            // begin gameplay
+            game.ResetBoard();
+
+            // game loops until neither black nor white have remaining moves
+            bool blackHasMoves; // cache result of game.HasLegalMoves('B') to avoid recomputation
+            while ((blackHasMoves = game.HasLegalMoves('@')) && game.HasLegalMoves('O'))
+            {
+                // execution instructions for when player is black
+                if (playerIsBlack)
+                {
+                    if (blackHasMoves)
+                    {
+                        // loop until black player enters a legal move
+                        do
+                        {
+                            game.PrintBoard();
+                            Console.Write("\nBlack, enter your move: ");
+                        } while (!game.PlayMove(userInput = Console.ReadLine()));
+                        boardTrace.Enqueue(userInput);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Black has no moves. Press enter to pass...");
+                        Console.ReadLine();
+                    }
+
+                    // wait for user to let ai move
+                    game.PrintBoard();
+                    Console.WriteLine("White's turn, press enter to continue...");
+                    Console.ReadLine();
+
+                    if (game.HasLegalMoves('O'))
+                    {
+                        int[] aiMove = ai.ChooseMove();
+                        game.PlayMove(aiMove);
+                        string aiMoveFormatted = FormatAIMove(aiMove);
+                        boardTrace.Enqueue(aiMoveFormatted);
+                    }
+                    else
+                    {
+                        Console.WriteLine("White has no moves. Press enter to pass...");
+                        Console.ReadLine();
+                    }
+                }
+                else // execution instructions for when player is white 
+                {
+                    // wait for user to let ai move
+                    game.PrintBoard();
+                    Console.WriteLine("Black's turn, press enter to continue...");
+                    Console.ReadLine();
+
+                    if (blackHasMoves)
+                    {
+                        int[] aiMove = ai.ChooseMove();
+                        game.PlayMove(aiMove);
+                        string aiMoveFormatted = FormatAIMove(aiMove);
+                        boardTrace.Enqueue(aiMoveFormatted);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Black has no moves. Press enter to pass...");
+                        Console.ReadLine();
+                    }
+
+                    if (game.HasLegalMoves('O'))
+                    {
+                        // loop until white player enters a legal move
+                        do
+                        {
+                            game.PrintBoard();
+                            Console.Write("\nWhite, enter your move: ");
+                        } while (!game.PlayMove(userInput = Console.ReadLine()));
+                        boardTrace.Enqueue(userInput);
+                    }
+                    else
+                    {
+                        Console.WriteLine("White has no moves. Press enter to pass...");
+                        Console.ReadLine();
+                    }
+                }
+            }
+            Console.WriteLine("There are no more legal moves. Press enter to continue...");
+            Console.ReadLine();
+
+            // score game
+            int blackScore = 0, whiteScore = 0;
+            foreach (char piece in game.BoardState)
+            {
+                if (piece == '@')
+                    blackScore++;
+                else if (piece == 'O')
+                    whiteScore++;
+            }
+
+            // declare winner
+            if (blackScore > whiteScore)
+                Console.WriteLine("Black Wins!");
+            else if (whiteScore > blackScore)
+                Console.WriteLine("White Wins!");
+            else
+                Console.WriteLine("Game Tied!");
+
+            Console.WriteLine($"Black Score: {blackScore}\nWhite Score: {whiteScore}");
+            Console.WriteLine("Press enter to continue...");
+            Console.ReadLine();
         }
 
         private static void PlayMultiplayer(OthelloGame game, Queue<string> boardTrace)
@@ -141,6 +297,13 @@ namespace Othello
             Console.WriteLine($"Black Score: {blackScore}\nWhite Score: {whiteScore}");
             Console.WriteLine("Press enter to continue...");
             Console.ReadLine();
+        }
+
+        private static string FormatAIMove(int[] aiMove)
+        {
+            char column = (char)(aiMove[0] + 65);
+            char row = (char)(aiMove[1] + 49);
+            return "" + column + row;
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Othello
         }
 
         // runs tree search algorithm and makes move based on results
-        public void MakeMove()
+        public int[] ChooseMove()
         {
             // reset moves considered
             movesConsidered = 0;
@@ -93,8 +93,8 @@ namespace Othello
                 });
             }
 
-            // play the determined best move
-            AttachedGame.PlayMove(bestEvaluatedMove);
+            // return the determined best move
+            return bestEvaluatedMove;
         }
 
         // performs minimax search
@@ -260,9 +260,13 @@ namespace Othello
             float blackScore = 0;
             float whiteScore = 0;
 
-            // number of valid moves for each colo
-            int blackNumMoves = GetValidMoves('@', boardState).Count;
-            int whiteNumMoves = GetValidMoves('O', boardState).Count;
+            // number of valid moves for each color
+            List<int[]> validMoves;
+            int blackNumMoves = 0, whiteNumMoves = 0;
+            if ((validMoves = GetValidMoves('@', boardState)) != null)
+                blackNumMoves = validMoves.Count;
+            if ((validMoves = GetValidMoves('O', boardState)) != null)
+                whiteNumMoves = validMoves.Count;
 
             // if any moves remain for either player, eval as normal
             if (whiteNumMoves > 0 || blackNumMoves > 0)
