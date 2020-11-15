@@ -114,28 +114,46 @@ namespace Othello
             {
                 int maxEval = int.MinValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
-                // TODO: if validMoves == null
-                validMoves.ForEach(position =>
+
+                // if there's no moves available, pass to the next ply
+                if (validMoves == null)
                 {
-                    stateCopy = (char[,])boardState.Clone();
-                    ApplyMove(position, stateCopy, color);
-                    int eval = MinimaxSearch(stateCopy, depth - 1, false);
+                    int eval = MinimaxSearch(boardState, depth - 1, false);
                     maxEval = Math.Max(maxEval, eval);
-                });
+                }
+                else // else if moves are available, loop through them
+                {
+                    validMoves.ForEach(position =>
+                    {
+                        stateCopy = (char[,])boardState.Clone();
+                        ApplyMove(position, stateCopy, color);
+                        int eval = MinimaxSearch(stateCopy, depth - 1, false);
+                        maxEval = Math.Max(maxEval, eval);
+                    });
+                }
                 return maxEval;
             }
             else
             {
                 int minEval = int.MaxValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
-                // TODO: if validMoves == null
-                validMoves.ForEach(position =>
+
+                // if there's no moves available, pass to the next ply
+                if (validMoves == null)
                 {
-                    stateCopy = (char[,])boardState.Clone();
-                    ApplyMove(position, stateCopy, color);
-                    int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                    int eval = MinimaxSearch(boardState, depth - 1, true);
                     minEval = Math.Min(minEval, eval);
-                });
+                }
+                else // else if moves are available, loop through them
+                {
+                    validMoves.ForEach(position =>
+                    {
+                        stateCopy = (char[,])boardState.Clone();
+                        ApplyMove(position, stateCopy, color);
+                        int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                        minEval = Math.Min(minEval, eval);
+                    });
+                }
                 return minEval;
             }
         }
@@ -156,16 +174,26 @@ namespace Othello
             {
                 int maxEval = int.MinValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
-                // TODO: if validMoves == null
-                foreach(int[] position in validMoves)
+
+                // if there's no moves available, pass to the next ply
+                if (validMoves == null)
                 {
-                    stateCopy = (char[,])boardState.Clone();
-                    ApplyMove(position, stateCopy, color);
-                    int eval = MinimaxSearch(stateCopy, depth - 1, false);
+                    int eval = AlphaBetaSearch(boardState, depth - 1, alpha, beta, false);
                     maxEval = Math.Max(maxEval, eval);
-                    alpha = Math.Max(alpha, eval);
-                    if (beta <= alpha)
-                        break;
+                }
+                else // else if moves are available, loop through them
+                {
+                    // loop through valid moves
+                    foreach (int[] position in validMoves)
+                    {
+                        stateCopy = (char[,])boardState.Clone();
+                        ApplyMove(position, stateCopy, color);
+                        int eval = AlphaBetaSearch(stateCopy, depth - 1, alpha, beta, false);
+                        maxEval = Math.Max(maxEval, eval);
+                        alpha = Math.Max(alpha, eval);
+                        if (beta <= alpha)
+                            break;
+                    }
                 }
                 return maxEval;
             }
@@ -173,16 +201,24 @@ namespace Othello
             {
                 int minEval = int.MaxValue;
                 List<int[]> validMoves = GetValidMoves(color, boardState);
-                // TODO: if validMoves == null
-                foreach (int[] position in validMoves)
+                // if there's no moves available, pass to the next ply
+                if (validMoves == null)
                 {
-                    stateCopy = (char[,])boardState.Clone();
-                    ApplyMove(position, stateCopy, color);
-                    int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                    int eval = AlphaBetaSearch(boardState, depth - 1, alpha, beta, true);
                     minEval = Math.Min(minEval, eval);
-                    beta = Math.Min(beta, eval);
-                    if (beta <= alpha)
-                        break;
+                }
+                else // else if moves are available, loop through them
+                {
+                    foreach (int[] position in validMoves)
+                    {
+                        stateCopy = (char[,])boardState.Clone();
+                        ApplyMove(position, stateCopy, color);
+                        int eval = MinimaxSearch(stateCopy, depth - 1, true);
+                        minEval = Math.Min(minEval, eval);
+                        beta = Math.Min(beta, eval);
+                        if (beta <= alpha)
+                            break;
+                    }
                 }
                 return minEval;
             }
@@ -217,9 +253,73 @@ namespace Othello
                 return null;
         }
 
+        // evaluation function from http://www.cs.cornell.edu/~yuli/othello/othello.html
         private int EvaluatePosition(char[,] boardState)
         {
-            throw new NotImplementedException();
+            // each players score
+            float blackScore = 0;
+            float whiteScore = 0;
+
+            // number of valid moves for each colo
+            int blackNumMoves = GetValidMoves('@', boardState).Count;
+            int whiteNumMoves = GetValidMoves('O', boardState).Count;
+
+            // if any moves remain for either player, eval as normal
+            if (whiteNumMoves > 0 || blackNumMoves > 0)
+            {
+                // check for posession of corners
+                #region Corners
+                if (boardState[0, 0] == '@')
+                    blackScore += 10;
+                else if (boardState[0, 0] == 'O')
+                    whiteScore += 10;
+                if (boardState[0, 7] == '@')
+                    blackScore += 10;
+                else if (boardState[0, 7] == 'O')
+                    whiteScore += 10;
+                if (boardState[7, 0] == '@')
+                    blackScore += 10;
+                else if (boardState[7, 0] == 'O')
+                    whiteScore += 10;
+                if (boardState[7, 7] == '@')
+                    blackScore += 10;
+                else if (boardState[7, 7] == 'O')
+                    whiteScore += 10;
+                #endregion
+
+                // check number of available moves
+                blackScore += blackNumMoves;
+                whiteScore += whiteNumMoves;
+
+                // check for number of pieces possesed
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        if (boardState[i, j] == '@')
+                            blackScore += 0.01f;
+                        else if (boardState[i, j] == 'O')
+                            whiteScore += 0.01f;
+                    }
+                }
+            }
+            else // if no moves remain the game is over, and the evaluation should be how many pieces each player has
+            {
+                // check for number of pieces possesed
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int j = 0; j < 8; j++)
+                    {
+                        if (boardState[i, j] == '@')
+                            blackScore += 1;
+                        else if (boardState[i, j] == 'O')
+                            whiteScore += 1;
+                    }
+                }
+            }
+
+            // return difference in scores rounded to nearest int
+            return (int)Math.Round(blackScore - whiteScore);
         }
 
         // returns true if there are no legal moves for either black or white
