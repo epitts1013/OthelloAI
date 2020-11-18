@@ -9,7 +9,7 @@ namespace Othello
     class OthelloAI
     {
         // class constants
-        private const int MAX_DEPTH = 4;    // max search depth for Minimax and AlphaBeta
+        private const int MAX_DEPTH = 6;    // max search depth for Minimax and AlphaBeta
 
         // store reference to the current OthelloGame object
         public OthelloGame AttachedGame { get; private set; }
@@ -57,7 +57,7 @@ namespace Othello
             {
                 int alpha = IsBlackPlayer ? int.MinValue : int.MaxValue;
                 int beta = IsBlackPlayer ? int.MaxValue : int.MinValue;
-                int maxEval = int.MinValue, eval;
+                int bestEval = int.MinValue, eval;
                 List<int[]> validMoves = GetValidMoves(color, AttachedGame.BoardState);
                 validMoves.ForEach(position =>
                 {
@@ -68,15 +68,24 @@ namespace Othello
                     analysisStack.Pop();
 
                     if (IsBlackPlayer)
-                        alpha = Math.Max(alpha, eval);
-                    else
-                        beta = Math.Max(beta, eval);
-
-                    if (eval > maxEval)
                     {
-                        maxEval = eval;
-                        bestEvaluatedMove = position;
+                        alpha = Math.Max(alpha, eval);
+                        if (eval > bestEval)
+                        {
+                            bestEval = eval;
+                            bestEvaluatedMove = position;
+                        }
                     }
+                    else
+                    {
+                        beta = Math.Min(beta, eval); // TODO: Changed from Math.Max(), I need to actually figure out if this is right
+                        if (eval < bestEval)         // TODO: I think this is a fix as well
+                        {
+                            bestEval = eval;
+                            bestEvaluatedMove = position;
+                        }
+                    }
+
                     statesAnalyzed++;
                 });
             }
@@ -348,7 +357,7 @@ namespace Othello
                     }
                 }
             }
-            else // if no moves remain the game is over, and the evaluation should be how many pieces each player has
+            else // if no moves remain the game is over, and the evaluation should be which player wins
             {
                 // check for number of pieces possesed
                 for (int i = 0; i < 8; i++)
@@ -361,6 +370,12 @@ namespace Othello
                             whiteScore += 1;
                     }
                 }
+
+                // if black wins, return int.MaxValue, else if white wins return int.MinValue, else return normal eval
+                if (blackScore > whiteScore)
+                    return int.MaxValue;
+                else if (whiteScore > blackScore)
+                    return int.MinValue;
             }
 
             // return difference in scores rounded to nearest int
