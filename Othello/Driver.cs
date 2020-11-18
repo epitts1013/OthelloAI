@@ -10,6 +10,7 @@
  */
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -26,7 +27,8 @@ namespace Othello
             OthelloGame game = new OthelloGame();
 
             // queue stores sequence of moves from a game
-            Queue<string> boardTrace = null;
+            Queue<string> moveSequence = null;
+            Queue<char[,]> boardStates = null;
 
             // string stores user input for processing
             string userInput;
@@ -46,22 +48,25 @@ namespace Othello
                 switch (userInput)
                 {
                     case "1":
-                        boardTrace = new Queue<string>();
-                        InitSingleplayer(game, boardTrace);
+                        moveSequence = new Queue<string>();
+                        boardStates = new Queue<char[,]>();
+                        InitSingleplayer(game, moveSequence, boardStates);
                         break;
 
                     case "2":
-                        boardTrace = new Queue<string>();
-                        PlayMultiplayer(game, boardTrace);
+                        moveSequence = new Queue<string>();
+                        boardStates = new Queue<char[,]>();
+                        PlayMultiplayer(game, moveSequence, boardStates);
                         break;
 
                     case "3":
-                        if (boardTrace != null)
+                        if (moveSequence != null)
                         {
-                            for (int i = 0; i < boardTrace.Count; i++)
+
+                            for (int i = 0; i < moveSequence.Count; i++)
                             {
-                                Console.WriteLine(boardTrace.Peek());
-                                boardTrace.Enqueue(boardTrace.Dequeue());
+                                Console.WriteLine(moveSequence.Peek());
+                                moveSequence.Enqueue(moveSequence.Dequeue());
                             }
                         }
                         else Console.WriteLine("Game must be played before viewing board trace.\nPress enter to continue...");
@@ -69,17 +74,40 @@ namespace Othello
                         break;
 
                     case "4":
-                        if (boardTrace != null)
+                        if (moveSequence != null)
                         {
                             string filePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile) + "\\Documents\\";
                             Console.Write("Give name to board trace file: ");
                             filePath += Console.ReadLine();
                             try
                             {
-                                System.IO.File.WriteAllLines(filePath, boardTrace);
+                                char[,] currState = null;
+                                using (StreamWriter sw = new StreamWriter(filePath))
+                                {
+                                    sw.WriteLine(moveSequence.Peek());
+                                    moveSequence.Enqueue(moveSequence.Dequeue());
+                                    for (int i = 0; i < boardStates.Count; i++)
+                                    {
+                                        sw.WriteLine(moveSequence.Peek());
+                                        moveSequence.Enqueue(moveSequence.Dequeue());
+                                        currState = boardStates.Peek();
+                                        boardStates.Enqueue(boardStates.Dequeue());
+                                        sw.WriteLine("  A B C D E F G H");
+                                        for (int j = 0; j < 8; j++)
+                                        {
+                                            sw.Write((j + 1) + " ");
+                                            for (int k = 0; k < 7; k++)
+                                                sw.Write(currState[j, k] + " ");
+                                            sw.WriteLine(currState[j, 7]);
+                                        }
+                                        sw.WriteLine();
+                                    }
+                                    sw.WriteLine(moveSequence.Peek());
+                                    boardStates.Enqueue(boardStates.Dequeue());
+                                }
                                 Console.WriteLine($"File write successful. File saved to {filePath}.\nPress enter to continue...");
                             }
-                            catch (System.IO.IOException)
+                            catch (IOException)
                             {
                                 Console.WriteLine("There was an error writing to file.");
                             }                            
@@ -100,7 +128,7 @@ namespace Othello
             }
         }
 
-        private static void InitSingleplayer(OthelloGame game, Queue<string> boardTrace)
+        private static void InitSingleplayer(OthelloGame game, Queue<string> moveSequence, Queue<char[,]> boardStates)
         {
             char playerColor = '\0', aiColor = '\0';
             string userInput;
@@ -126,7 +154,7 @@ namespace Othello
 
                         // initialize AI
                         ai = new OthelloAI(game, false);
-                        boardTrace.Enqueue("Human Player: Black\nAI: White");
+                        moveSequence.Enqueue("Human Player: Black\nAI: White");
                     }
                     else // if human chose white, do the reverse
                     {
@@ -136,7 +164,7 @@ namespace Othello
 
                         // initialize AI
                         ai = new OthelloAI(game, true);
-                        boardTrace.Enqueue("Human Player: White\nAI: Black");
+                        moveSequence.Enqueue("Human Player: White\nAI: Black");
                     }
                     validInput = true;
                 }
@@ -151,10 +179,10 @@ namespace Othello
             Console.ReadLine();
 
             bool playerIsBlack = playerColor == '@';
-            PlaySingleplayer(game, ai, boardTrace, playerIsBlack);
+            PlaySingleplayer(game, ai, moveSequence, boardStates, playerIsBlack);
         }
 
-        private static void PlaySingleplayer(OthelloGame game, OthelloAI ai, Queue<string> boardTrace, bool playerIsBlack)
+        private static void PlaySingleplayer(OthelloGame game, OthelloAI ai, Queue<string> moveSequence, Queue<char[,]> boardStates, bool playerIsBlack)
         {
             string userInput;
 
@@ -201,12 +229,14 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue("Black: " + userInput.ToUpper());
+                        moveSequence.Enqueue("Black: " + userInput.ToUpper());
+                        boardStates.Enqueue((char[,])game.BoardState.Clone());
                     }
                     else
                     {
                         Console.WriteLine("Black has no moves. Press enter to pass...");
                         Console.ReadLine();
+                        game.PassMove();
                     }
 
                     // wait for user to let ai move
@@ -218,12 +248,14 @@ namespace Othello
                         int[] aiMove = ai.ChooseMove();
                         game.PlayMove(aiMove);
                         string aiMoveFormatted = FormatAIMove(aiMove);
-                        boardTrace.Enqueue("White: " + aiMoveFormatted);
+                        moveSequence.Enqueue("White: " + aiMoveFormatted);
+                        boardStates.Enqueue((char[,])game.BoardState.Clone());
                     }
                     else
                     {
                         Console.WriteLine("White has no moves. Press enter to pass...");
                         Console.ReadLine();
+                        game.PassMove();
                     }
                 }
                 else // execution instructions for when player is white 
@@ -237,12 +269,14 @@ namespace Othello
                         int[] aiMove = ai.ChooseMove();
                         game.PlayMove(aiMove);
                         string aiMoveFormatted = FormatAIMove(aiMove);
-                        boardTrace.Enqueue("Black: " + aiMoveFormatted);
+                        moveSequence.Enqueue("Black: " + aiMoveFormatted);
+                        boardStates.Enqueue((char[,])game.BoardState.Clone());
                     }
                     else
                     {
                         Console.WriteLine("Black has no moves. Press enter to pass...");
                         Console.ReadLine();
+                        game.PassMove();
                     }
 
                     if (game.HasLegalMoves('O'))
@@ -275,12 +309,14 @@ namespace Othello
                                     break;
                             }
                         } while (!validMoveEntered);
-                        boardTrace.Enqueue("White: " + userInput.ToUpper());
+                        moveSequence.Enqueue("White: " + userInput.ToUpper());
+                        boardStates.Enqueue((char[,])game.BoardState.Clone());
                     }
                     else
                     {
                         Console.WriteLine("White has no moves. Press enter to pass...");
                         Console.ReadLine();
+                        game.PassMove();
                     }
                 }
             }
@@ -306,12 +342,12 @@ namespace Othello
                 Console.WriteLine("Game Tied!");
 
             Console.WriteLine($"Black Score: {blackScore}\nWhite Score: {whiteScore}");
-            boardTrace.Enqueue($"Final Score:\nBlack Score: {blackScore}\nWhite Score: {whiteScore}");
+            moveSequence.Enqueue($"Final Score:\nBlack Score: {blackScore}\nWhite Score: {whiteScore}");
             Console.WriteLine("Press enter to continue...");
             Console.ReadLine();
         }
 
-        private static void PlayMultiplayer(OthelloGame game, Queue<string> boardTrace)
+        private static void PlayMultiplayer(OthelloGame game, Queue<string> moveSequence, Queue<char[,]> boardStates)
         {
             game.ResetBoard();
 
@@ -329,12 +365,14 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nBlack, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue("Black: " + userInput.ToUpper());
+                    moveSequence.Enqueue("Black: " + userInput.ToUpper());
+                    boardStates.Enqueue((char[,])game.BoardState.Clone());
                 }
                 else
                 {
                     Console.WriteLine("Black has no moves. Press enter to pass...");
                     Console.ReadLine();
+                    game.PassMove();
                 }
 
                 if (game.HasLegalMoves('O'))
@@ -345,12 +383,14 @@ namespace Othello
                         game.PrintBoard();
                         Console.Write("\nWhite, enter your move: ");
                     } while (!game.PlayMove(userInput = Console.ReadLine()));
-                    boardTrace.Enqueue("White: " + userInput.ToUpper());
+                    moveSequence.Enqueue("White: " + userInput.ToUpper());
+                    boardStates.Enqueue((char[,])game.BoardState.Clone());
                 }
                 else
                 {
                     Console.WriteLine("White has no moves. Press enter to pass...");
                     Console.ReadLine();
+                    game.PassMove();
                 }
             }
             Console.WriteLine("There are no more legal moves. Press enter to continue...");

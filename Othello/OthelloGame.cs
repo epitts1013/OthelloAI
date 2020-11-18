@@ -52,6 +52,12 @@ namespace Othello
             BoardState[3, 4] = '@';
         }
 
+        // method called if a player needs to pass to update the turn
+        public void PassMove()
+        {
+            IsBlacksTurn = !IsBlacksTurn;
+        }
+
         // returns true if valid move was played
         public bool PlayMove(string move)
         {
